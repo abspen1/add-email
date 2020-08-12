@@ -44,8 +44,9 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Invalid email address"))
 	} else if in.Name == "" {
 		w.Write([]byte("Enter your name"))
+	} else {
+		in.success(w)
 	}
-	in.success(w)
 }
 
 func isEmailValid(e string) bool {
