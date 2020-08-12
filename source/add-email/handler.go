@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net"
 	"net/http"
 	"regexp"
@@ -41,10 +40,10 @@ func Handle(w http.ResponseWriter, r *http.Request) error {
 	m := map[string]interface{}{}
 
 	// Parsing/Unmarshalling JSON encoding/json
-	eRR := json.Unmarshal(info, &m)
+	err = json.Unmarshal(info, &m)
 
-	if eRR != nil {
-		log.Fatal(eRR)
+	if err != nil {
+		return err
 	}
 	in.parseMap(m)
 
@@ -60,12 +59,12 @@ func Handle(w http.ResponseWriter, r *http.Request) error {
 	secret, _ := getDBSecret("redis-password")
 	c, err := redis.Dial("tcp", "192.168.1.6:6379")
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	response, err := c.Do("AUTH", secret)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	fmt.Println("Connected!", response)
 
