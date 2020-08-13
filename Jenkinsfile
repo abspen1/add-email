@@ -41,7 +41,7 @@ pipeline {
                     sh "cat \$config >> config"
                     sh "export KUBECONFIG=config"
                     
-                    sh "./kubectl get pods -n openfaas-fn"
+                    //sh "./kubectl get pods -n openfaas-fn"
                 }
             }
         }
