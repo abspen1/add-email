@@ -13,17 +13,6 @@ import (
 	"github.com/gomodule/redigo/redis"
 )
 
-// Info struct
-type Info struct {
-	Name  string `json:"name"`
-	Email string `json:"email"`
-}
-
-// Body struct
-type Body struct {
-	Info Info `json:"info"`
-}
-
 var emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 
 // Handle function
@@ -32,18 +21,19 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 
 	if r.Body != nil {
 		defer r.Body.Close()
-		body, _ := ioutil.ReadAll(r.Body)
-		info = body
+		info, _ = ioutil.ReadAll(r.Body)
 	}
 
-	var requestBody Body
-
-	_ = json.Unmarshal(info, &requestBody)
+	// Get our JSON into nested map structure
+	var data = map[string]map[string]string{}
+	_ = json.Unmarshal(info, &data)
+	name := (data["info"]["name"])
+	email := (data["info"]["email"])
 
 	// Check if email and name are valid, if so check database then add to database
-	if !isEmailValid(requestBody.Info.Email) {
+	if !isEmailValid(email) {
 		w.Write([]byte("Invalid email address"))
-	} else if requestBody.Info.Name == "" {
+	} else if name == "" {
 		w.Write([]byte("Enter your name"))
 	} else {
 		secret, _ := getDBSecret("redis-password")
@@ -59,14 +49,14 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 		}
 
 		var exists string
-		exists, _ = redis.String(c.Do("HGET", "emails", requestBody.Info.Email))
+		exists, _ = redis.String(c.Do("HGET", "emails", email))
 		if exists == "" {
-			c.Do("HSET", "emails", requestBody.Info.Email, requestBody.Info.Name)
-			message := fmt.Sprintf("Added %s: %s to database", requestBody.Info.Name, requestBody.Info.Email)
+			c.Do("HSET", "emails", email, name)
+			message := fmt.Sprintf("Added %s: %s to database", name, email)
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(message))
 		} else {
-			w.Write([]byte(fmt.Sprintf("%s, you're already signed up for emails :)", requestBody.Info.Name)))
+			w.Write([]byte(fmt.Sprintf("%s, you're already signed up for emails :)", name)))
 		}
 	}
 }
