@@ -23,7 +23,7 @@ pipeline {
                 sshagent(credentials : ['gt-ssh']) {                    
                     sh """
                         ssh -o StrictHostKeyChecking=no pi@192.168.1.30 \
-                        'cd source/ \
+                        'cd add-email/ \
                         && faas template pull https://github.com/openfaas-incubator/golang-http-template \
                         && cat ~/faas_pass.txt | faas-cli login --password-stdin -g 127.0.0.1:31375 \
                         && faas-cli up --build-arg GO111MODULE=on -f add-email.yml'
