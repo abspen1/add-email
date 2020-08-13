@@ -12,9 +12,9 @@ pipeline {
                     sh 'if [ -d "/var/jenkins_home/.ssh/known_hosts" ]; then rm -Rf /var/jenkins_home/.ssh/known_hosts; fi'
                     sh """
                         ssh -o StrictHostKeyChecking=no pi@192.168.1.30 \
-                        'if [ -d "source" ]; then rm -Rf source; fi'
+                        'if [ -d "add-email" ]; then rm -Rf add-email; fi'
                     """
-                    sh 'scp -o StrictHostKeyChecking=no -r source/ pi@192.168.1.30:~/'
+                    sh 'scp -o StrictHostKeyChecking=no -r source/ pi@192.168.1.30:~/add-email'
                 }
             }
         }
