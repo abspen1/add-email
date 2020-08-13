@@ -101,11 +101,16 @@ func (in Info) success(w http.ResponseWriter) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	exists, _ := redis.Bool(c.Do("EXISTS", "emails", in.Email))
+	if exists {
+		fmt.Println("Exists works with hashes")
+		c.Do("HSET", "emails", in.Email, in.Name)
 
-	c.Do("HSET", "emails", in.Email, in.Name)
+		message := fmt.Sprintf("Added %s: %s to database", in.Name, in.Email)
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(message))
+	} else {
+		w.Write([]byte("You're already signed up for emails :)"))
+	}
 	defer c.Close()
-
-	message := fmt.Sprintf("Added %s: %s to database", in.Name, in.Email)
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(message))
 }
