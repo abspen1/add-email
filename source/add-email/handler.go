@@ -19,11 +19,15 @@ type Info struct {
 	Email string
 }
 
+// Body struct
+type Body struct {
+	info Info
+}
+
 var emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 
 // Handle function
 func Handle(w http.ResponseWriter, r *http.Request) {
-	var in Info
 	var info []byte
 
 	if r.Body != nil {
@@ -31,6 +35,10 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 		body, _ := ioutil.ReadAll(r.Body)
 		info = body
 	}
+	
+	var requestBody Body
+	
+	requestBody = json.Unmarshall(info, &requestBody)
 
 	// Creating the maps for JSON
 	m := map[string]interface{}{}
