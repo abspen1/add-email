@@ -15,13 +15,13 @@ import (
 
 // Info struct
 type Info struct {
-	Name  string
-	Email string
+	Name  string `json:"name"`
+	Email string `json:"email"`
 }
 
 // Body struct
 type Body struct {
-	info Info
+	Info Info `json:"info"`
 }
 
 var emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
@@ -40,12 +40,12 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 
 	_ = json.Unmarshal(info, &requestBody)
 
-	fmt.Printf("%s", requestBody.info.Name)
+	fmt.Printf("%s", requestBody.Info.Name)
 
 	// Check if email is valid
-	if !isEmailValid(requestBody.info.Email) {
+	if !isEmailValid(requestBody.Info.Email) {
 		w.Write([]byte("Invalid email address"))
-	} else if requestBody.info.Name == "" {
+	} else if requestBody.Info.Name == "" {
 		w.Write([]byte("Enter your name"))
 	} else {
 
@@ -61,14 +61,14 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 			log.Fatal(err)
 		}
 
-		exists, _ := redis.Bool(c.Do("EXISTS", "emails", requestBody.info.Email))
+		exists, _ := redis.Bool(c.Do("EXISTS", "emails", requestBody.Info.Email))
 		if exists {
 			w.Write([]byte("You're already signed up for emails :)"))
 		} else {
 			fmt.Println("Exists works with hashes")
-			c.Do("HSET", "emails", requestBody.info.Email, requestBody.info.Name)
+			c.Do("HSET", "emails", requestBody.Info.Email, requestBody.Info.Name)
 
-			message := fmt.Sprintf("Added %s: %s to database", requestBody.info.Name, requestBody.info.Email)
+			message := fmt.Sprintf("Added %s: %s to database", requestBody.Info.Name, requestBody.Info.Email)
 
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(message))
