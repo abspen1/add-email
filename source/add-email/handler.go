@@ -54,22 +54,25 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Fatal(err)
 		}
+		defer c.Close()
 
 		_, err = c.Do("AUTH", secret)
 		if err != nil {
 			log.Fatal(err)
 		}
-		exists, _ := redis.Bool(c.Do("EXISTS", "emails", in.Email))
+
+		exists, _ := redis.Bool(c.Do("EXISTS", "emails", requestBody.info.Email))
 		if exists {
 			w.Write([]byte("You're already signed up for emails :)"))
 		} else {
 			fmt.Println("Exists works with hashes")
-			c.Do("HSET", "emails", in.Email, in.Name)
-			message := fmt.Sprintf("Added %s: %s to database", in.Name, in.Email)
+			c.Do("HSET", "emails", requestBody.info.Email, requestBody.info.Name)
+
+			message := fmt.Sprintf("Added %s: %s to database", requestBody.info.Name, requestBody.info.Email)
+
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(message))
 		}
-		defer c.Close()
 
 	}
 }
