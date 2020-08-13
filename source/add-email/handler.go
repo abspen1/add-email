@@ -40,15 +40,12 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 
 	_ = json.Unmarshal(info, &requestBody)
 
-	fmt.Printf("%s", requestBody.Info.Name)
-
-	// Check if email is valid
+	// Check if email and name are valid, if so check database then add to database
 	if !isEmailValid(requestBody.Info.Email) {
 		w.Write([]byte("Invalid email address"))
 	} else if requestBody.Info.Name == "" {
 		w.Write([]byte("Enter your name"))
 	} else {
-
 		secret, _ := getDBSecret("redis-password")
 		c, err := redis.Dial("tcp", "192.168.1.6:6379")
 		if err != nil {
@@ -60,17 +57,17 @@ func Handle(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Fatal(err)
 		}
-    
-    exists := ""
-    exists, _ = redis.String(c.Do("HGET", "emails", in.Email))
-    if exists == "" {
-      c.Do("HSET", "emails", in.Email, in.Name)
-      message := fmt.Sprintf("Added %s: %s to database", in.Name, in.Email)
-      w.WriteHeader(http.StatusOK)
-      w.Write([]byte(message))
-    } else {
-      w.Write([]byte(fmt.Sprintf("%s, you're already signed up for emails :)", in.Name)))
-    }
+
+		var exists string
+		exists, _ = redis.String(c.Do("HGET", "emails", requestBody.Info.Email))
+		if exists == "" {
+			c.Do("HSET", "emails", requestBody.Info.Email, requestBody.Info.Name)
+			message := fmt.Sprintf("Added %s: %s to database", requestBody.Info.Name, requestBody.Info.Email)
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(message))
+		} else {
+			w.Write([]byte(fmt.Sprintf("%s, you're already signed up for emails :)", requestBody.Info.Name)))
+		}
 	}
 }
 
